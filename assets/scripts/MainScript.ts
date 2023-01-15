@@ -47,6 +47,12 @@ const MIN_Y = -120;
 
 @ccclass("MainScript")
 export class MainScript extends Component {
+
+    @property(Node)
+    background: Node = null;
+    @property(Node)
+    shade: Node = null;
+
     @property(Node)
     plane: Node = null;
     planeSpeed = 0;
@@ -199,19 +205,20 @@ export class MainScript extends Component {
         this.btnPlayAgain.node.on(Node.EventType.TOUCH_END, () => this.setStatus(GameStatus.Game_Loading), this);
         this.btnCredits.node.on(Node.EventType.TOUCH_END, this.creditBtn, this)
         // Set layout
-        this.node.getChildByName("Bg").getComponent(UITransform).setContentSize(view.getViewportRect())
-        this.node.getChildByName("ShadeOverlay").getComponent(UITransform).setContentSize(view.getViewportRect())
-        this.logoNode.setPosition(0, view.getVisibleSize().y/2 - (this.logoNode.getComponent(UITransform).contentSize.height * this.logoNode.scale.y/2) - 10)
-        this.gameOverNode.setPosition(0, view.getVisibleSize().y/2 - (this.gameOverNode.getComponent(UITransform).contentSize.height * this.gameOverNode.scale.y/2) - 10)
+
+        this.background.getComponent(UITransform).setContentSize(view.getViewportRect())
+        this.shade.getComponent(UITransform).setContentSize(view.getViewportRect())
+        // this.logoNode.setPosition(0, view.getVisibleSize().y/2 - (this.logoNode.getComponent(UITransform).contentSize.height * this.logoNode.scale.y/2) - 10)
+        // this.gameOverNode.setPosition(0, view.getVisibleSize().y/2 - (this.gameOverNode.getComponent(UITransform).contentSize.height * this.gameOverNode.scale.y/2) - 10)
         this.scoreLabel.node.setPosition(-view.getVisibleSize().x/2 + 20, view.getVisibleSize().y/2 - 20)
-        this.btnStart.node.setPosition(0, 0)
-        this.btnInstructions.node.setPosition(0, -75)
-        this.btnCredits.node.setPosition(0, -140)
-        this.btnPlayAgain.node.setPosition(0, 0)
+        // this.btnStart.node.setPosition(0, 0)
+        // this.btnInstructions.node.setPosition(0, -75)
+        // this.btnCredits.node.setPosition(0, -140)
+        // this.btnPlayAgain.node.setPosition(0, 0)
         // Create Obstacles
         for (let i = 0; i < this.obstacles.length; i++) {
             this.obstacles[i] = instantiate(this.pipePrefab);
-            this.node.getChildByName("Pipe").addChild(this.obstacles[i]);
+            this.node.getChildByName("PlayingLayer").getChildByName("Pipe").addChild(this.obstacles[i]);
             this.obstacles[i].getComponent(UIOpacity).opacity = 0;
         }
         // Set initial game state
@@ -219,8 +226,8 @@ export class MainScript extends Component {
     }
 
     creditBtn() {
-        this.node.getChildByName("ShadeOverlay").active = true;
-        this.node.getChildByName("CreditOverlay").active = true;
+        this.shade.active = true;
+        this.node.getChildByName("OverlayLayer").getChildByName("CreditOverlay").active = true;
         this.btnStart.interactable = false;
         this.btnInstructions.interactable = false;
         this.btnCredits.interactable = false;
@@ -365,9 +372,9 @@ export class MainScript extends Component {
         }
     }
     onMouseUp(event: EventMouse) {
-        if (this.node.getChildByName("ShadeOverlay").active) {
-            this.node.getChildByName("ShadeOverlay").active = false;
-            this.node.getChildByName("CreditOverlay").active = false;
+        if (this.shade.active) {
+            this.shade.active = false;
+            this.node.getChildByName("OverlayLayer").getChildByName("CreditOverlay").active = false;
             //other overlay
             this.btnStart.interactable = true;
             this.btnInstructions.interactable = true;
@@ -378,9 +385,9 @@ export class MainScript extends Component {
         }
     }
     onTouchEnd(touch: Touch, event: EventTouch) {
-        if (this.node.getChildByName("ShadeOverlay").active) {
-            this.node.getChildByName("ShadeOverlay").active = false;
-            this.node.getChildByName("CreditOverlay").active = false;
+        if (this.shade.active) {
+            this.shade.active = false;
+            this.node.getChildByName("OverlayLayer").getChildByName("CreditOverlay").active = false;
             //other overlay
             this.btnStart.interactable = true;
             this.btnInstructions.interactable = true;
