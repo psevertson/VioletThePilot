@@ -43,7 +43,7 @@ const JUMP_SPEED = 7;
 const GRAVITY = 0.3;
 const MAX_Y = 120;
 const MIN_Y = -120;
-// const BUILDING_NUMBERS = [1, 2, 3, 4];
+const FADE_SECONDS = 0.5;
 
 @ccclass("MainScript")
 export class MainScript extends Component {
@@ -69,9 +69,9 @@ export class MainScript extends Component {
     last_image: SpriteFrame = null;
 
     @property(Node)
-    logoNode: Node = null;
+    readyLayer: Node = null;
     @property(Node)
-    gameOverNode: Node = null;
+    gameOverLayer: Node = null;
     @property(Button)
     btnStart: Button = null;
     @property(Button)
@@ -100,61 +100,67 @@ export class MainScript extends Component {
     gameStatus: GameStatus = GameStatus.Game_Loading; 
     
     // Define the state all objects should be in when starting each status
-    setStatus(status: GameStatus) {
+    setStatus(event, status: GameStatus) {
+        status = parseInt(status.toString())
         this.gameStatus = status
         if (status === GameStatus.Game_Loading) {
             this.coin.setPosition(-view.getVisibleSize().x, 0)
             this.plane.setPosition(-view.getVisibleSize().x/2 - (this.plane.getComponent(UITransform).contentSize.width * this.plane.scale.x/2), 0);
             this.plane.setRotationFromEuler(new Vec3(0, 0, 0));
-            let opacity = this.logoNode.getComponent(UIOpacity);
-            opacity.opacity = 0;
-            let gameoverOpacity = this.gameOverNode.getComponent(UIOpacity);
-            tween(gameoverOpacity).to(2, { opacity: 0 }).start();
+            this.readyLayer.getComponent(UIOpacity).opacity = 0;
+            this.btnStart.interactable = false;
+            this.btnStart.enabled = false;
+            this.btnInstructions.interactable = false;
+            this.btnInstructions.enabled = false;
+            this.btnCredits.interactable = false;
+            this.btnCredits.enabled = false;
+            let gameoverOpacity = this.gameOverLayer.getComponent(UIOpacity);
+            tween(gameoverOpacity).to(FADE_SECONDS, { opacity: 0 }).start();
+            this.btnPlayAgain.interactable = false;
+            this.btnPlayAgain.enabled = false;
             for (let i = 0; i < this.obstacles.length; i++) {
                 let op = this.obstacles[i].getComponent(UIOpacity);
-                tween(op).to(2, { opacity: 0 }).start();
+                tween(op).to(FADE_SECONDS, { opacity: 0 }).start();
             }
-            this.gameOverNode.active = false;
-            this.btnStart.node.active = false;
-            this.btnCredits.node.active = false;
-            this.btnInstructions.node.active = false;
-            this.btnPlayAgain.node.active = false;
             this.scoreLabel.node.active = false;
         } else if (status === GameStatus.Game_Ready) {
             this.coin.setPosition(-view.getVisibleSize().x, 0)
             this.plane.setPosition(-view.getVisibleSize().width / 2 + (this.plane.getComponent(UITransform).contentSize.width * this.plane.scale.x /2), 0);
             this.plane.setRotationFromEuler(new Vec3(0, 0, 0));
-            let opacity = this.logoNode.getComponent(UIOpacity);
-            tween(opacity).to(2, { opacity: 255 }).start();
-            let gameoverOpacity = this.gameOverNode.getComponent(UIOpacity);
+            tween(this.readyLayer.getComponent(UIOpacity)).to(FADE_SECONDS, { opacity: 255 }).start();
+            this.btnStart.interactable = true;
+            this.btnStart.enabled = true;
+            this.btnInstructions.interactable = true;
+            this.btnInstructions.enabled = true;
+            this.btnCredits.interactable = true;
+            this.btnCredits.enabled = true;
+            let gameoverOpacity = this.gameOverLayer.getComponent(UIOpacity);
             gameoverOpacity.opacity = 0;
+            this.btnPlayAgain.interactable = false;
+            this.btnPlayAgain.enabled = false;
             for (let i = 0; i < this.obstacles.length; i++) {
                 let op = this.obstacles[i].getComponent(UIOpacity);
                 op.opacity = 0;
             }
-            this.gameOverNode.active = false;
-            this.btnStart.node.active = true;
-            this.btnCredits.node.active = true;
-            this.btnInstructions.node.active = true;
-            this.btnPlayAgain.node.active = false;
             this.scoreLabel.node.active = false;
         } else if (status === GameStatus.Game_Playing) {
             this.plane.setPosition(-view.getVisibleSize().width / 2 + (this.plane.getComponent(UITransform).contentSize.width * this.plane.scale.x /2), 0);
             this.plane.setRotationFromEuler(new Vec3(0, 0, 0));
-            let opacity = this.logoNode.getComponent(UIOpacity);
-            tween(opacity).to(2, { opacity: 0 }).start();
-            let gameoverOpacity = this.gameOverNode.getComponent(UIOpacity);
+            tween(this.readyLayer.getComponent(UIOpacity)).to(FADE_SECONDS, { opacity: 0 }).start();
+            this.btnStart.interactable = false;
+            this.btnStart.enabled = false;
+            this.btnInstructions.interactable = false;
+            this.btnInstructions.enabled = false;
+            this.btnCredits.interactable = false;
+            this.btnCredits.enabled = false;
+            let gameoverOpacity = this.gameOverLayer.getComponent(UIOpacity);
             gameoverOpacity.opacity = 0;
+            this.btnPlayAgain.interactable = false;
+            this.btnPlayAgain.enabled = false;
             for (let i = 0; i < this.obstacles.length; i++) {
                 let op = this.obstacles[i].getComponent(UIOpacity);
                 op.opacity = 255;
             }
-            this.gameOverNode.active = false;
-            this.btnStart.node.active = false;
-            this.btnCredits.node.active = false;
-            this.btnInstructions.node.active = false;
-            this.btnPlayAgain.node.active = false;
-            //make playagain fade in
             this.scoreLabel.node.active = true;
 
             for (let i = 0; i < this.obstacles.length; i++) {
@@ -167,19 +173,21 @@ export class MainScript extends Component {
             this.planeSpeed = 0
         } else if (status === GameStatus.Game_Over) {
             this.coin.setPosition(-view.getVisibleSize().x, 0)
-            let opacity = this.logoNode.getComponent(UIOpacity);
-            opacity.opacity = 0
-            let gameoverOpacity = this.gameOverNode.getComponent(UIOpacity);
-            tween(gameoverOpacity).to(2, { opacity: 255 }).start();
+            this.readyLayer.getComponent(UIOpacity).opacity = 0;
+            this.btnStart.interactable = false;
+            this.btnStart.enabled = false;
+            this.btnInstructions.interactable = false;
+            this.btnInstructions.enabled = false;
+            this.btnCredits.interactable = false;
+            this.btnCredits.enabled = false;
+            let gameoverOpacity = this.gameOverLayer.getComponent(UIOpacity);
+            tween(gameoverOpacity).to(FADE_SECONDS, { opacity: 255 }).start();
+            this.btnPlayAgain.interactable = true;
+            this.btnPlayAgain.enabled = true;
             for (let i = 0; i < this.obstacles.length; i++) {
                 let op = this.obstacles[i].getComponent(UIOpacity);
                 op.opacity = 255;
             }
-            this.gameOverNode.active = true;
-            this.btnStart.node.active = false;
-            this.btnCredits.node.active = false;
-            this.btnInstructions.node.active = false;
-            this.btnPlayAgain.node.active = true;
             this.scoreLabel.node.active = false;
             this.planeSpeed = 0
         }
@@ -201,9 +209,9 @@ export class MainScript extends Component {
                 this
                 );
             }
-        this.btnStart.node.on(Node.EventType.TOUCH_END, () => this.setStatus(GameStatus.Game_Playing), this);
-        this.btnPlayAgain.node.on(Node.EventType.TOUCH_END, () => this.setStatus(GameStatus.Game_Loading), this);
-        this.btnCredits.node.on(Node.EventType.TOUCH_END, this.creditBtn, this)
+        // this.btnStart.node.on(Node.EventType.TOUCH_END, () => this.setStatus(null, GameStatus.Game_Playing), this);
+        // this.btnPlayAgain.node.on(Node.EventType.TOUCH_END, () => this.setStatus(null, GameStatus.Game_Loading), this);
+        // this.btnCredits.node.on(Node.EventType.TOUCH_END, this.creditBtn, this)
         // Set layout
 
         this.background.getComponent(UITransform).setContentSize(view.getViewportRect())
@@ -222,15 +230,7 @@ export class MainScript extends Component {
             this.obstacles[i].getComponent(UIOpacity).opacity = 0;
         }
         // Set initial game state
-        this.setStatus(GameStatus.Game_Loading)
-    }
-
-    creditBtn() {
-        this.shade.active = true;
-        this.node.getChildByName("OverlayLayer").getChildByName("CreditOverlay").active = true;
-        this.btnStart.interactable = false;
-        this.btnInstructions.interactable = false;
-        this.btnCredits.interactable = false;
+        this.setStatus(null, GameStatus.Game_Loading)
     }
 
     setupObstacle(i: number, first: boolean) {
@@ -269,7 +269,7 @@ export class MainScript extends Component {
             x += 1
             if (x > -view.getVisibleSize().width / 2 + (this.plane.getComponent(UITransform).contentSize.width * this.plane.scale.x /2)) {
                 x = -view.getVisibleSize().width / 2 + (this.plane.getComponent(UITransform).contentSize.width * this.plane.scale.x /2)
-                this.setStatus(GameStatus.Game_Ready)
+                this.setStatus(null, GameStatus.Game_Ready)
             }
             this.plane.setPosition(
                 x, this.plane.getPosition().y
@@ -345,7 +345,7 @@ export class MainScript extends Component {
     ) {
         if (selfCollider.tag === 0 || otherCollider.tag === 0) {
             if (this.gameStatus == GameStatus.Game_Playing) {
-                this.setStatus(GameStatus.Game_Over)
+                this.setStatus(null, GameStatus.Game_Over)
             }
         } else if (selfCollider.tag === 1 || otherCollider.tag === 1) {
             this.score++;
@@ -372,29 +372,35 @@ export class MainScript extends Component {
         }
     }
     onMouseUp(event: EventMouse) {
-        if (this.shade.active) {
-            this.shade.active = false;
-            this.node.getChildByName("OverlayLayer").getChildByName("CreditOverlay").active = false;
-            //other overlay
-            this.btnStart.interactable = true;
-            this.btnInstructions.interactable = true;
-            this.btnCredits.interactable = true;
-        }
         if (this.gameStatus == GameStatus.Game_Playing) {
             this.touching = false;
         }
     }
     onTouchEnd(touch: Touch, event: EventTouch) {
-        if (this.shade.active) {
-            this.shade.active = false;
-            this.node.getChildByName("OverlayLayer").getChildByName("CreditOverlay").active = false;
-            //other overlay
-            this.btnStart.interactable = true;
-            this.btnInstructions.interactable = true;
-            this.btnCredits.interactable = true;
-        }
         if (this.gameStatus == GameStatus.Game_Playing) {
             this.touching = false;   
+        }
+    }
+
+    setOverlay(event, type) {
+        if (type === "credits") {
+            this.node.getChildByName("OverlayLayer").active = true
+            this.btnStart.interactable = false;
+            this.btnStart.enabled = false;
+            this.btnInstructions.interactable = false;
+            this.btnInstructions.enabled = false;
+            this.btnCredits.interactable = false;
+            this.btnCredits.enabled = false;
+        } else if (type === "instructions") {
+
+        } else {
+            this.node.getChildByName("OverlayLayer").active = false
+            this.btnStart.interactable = true;
+            this.btnStart.enabled = true;
+            this.btnInstructions.interactable = true;
+            this.btnInstructions.enabled = true;
+            this.btnCredits.interactable = true;
+            this.btnCredits.enabled = true;
         }
     }
 }
