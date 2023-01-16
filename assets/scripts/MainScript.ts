@@ -50,6 +50,11 @@ export class MainScript extends Component {
 
     @property(Node)
     background: Node = null;
+    clouds: Node[] = [];
+    @property(Prefab)
+    cloudPrefab: Prefab = null;
+    @property(SpriteFrame)
+    cloudImages: SpriteFrame[] = [];
     @property(Node)
     shade: Node = null;
 
@@ -170,7 +175,7 @@ export class MainScript extends Component {
 
             this.score = 0
             this.scoreLabel.string = this.score.toString()
-            this.planeSpeed = 0
+            this.planeSpeed = JUMP_SPEED
         } else if (status === GameStatus.Game_Over) {
             this.coin.setPosition(-view.getVisibleSize().x, 0)
             this.readyLayer.getComponent(UIOpacity).opacity = 0;
@@ -229,6 +234,16 @@ export class MainScript extends Component {
             this.node.getChildByName("PlayingLayer").getChildByName("Pipe").addChild(this.obstacles[i]);
             this.obstacles[i].getComponent(UIOpacity).opacity = 0;
         }
+        let cloud1 = instantiate(this.cloudPrefab)
+        cloud1.children[0].getComponent(Sprite).spriteFrame = this.cloudImages[0];
+        this.node.getChildByName("BackgroundLayer").getChildByName("Clouds").addChild(cloud1)
+        this.clouds.push(cloud1)
+        let cloud2 = instantiate(this.cloudPrefab)
+        cloud2.children[0].getComponent(Sprite).spriteFrame = this.cloudImages[1];
+        this.node.getChildByName("BackgroundLayer").getChildByName("Clouds").addChild(cloud2)
+        this.clouds.push(cloud2)
+        this.setupCloud(0, true)
+        this.setupCloud(1, false)
         // Set initial game state
         this.setStatus(null, GameStatus.Game_Loading)
     }
@@ -246,6 +261,14 @@ export class MainScript extends Component {
         this.last_image = random;
     }
 
+    setupCloud(i: number, first: boolean) {
+        let x = this.clouds[(i + this.clouds.length - 1) % this.clouds.length].getPosition().x + OBSTACLE_SPACING;
+        if (first) {
+            x = OBSTACLE_SPACING * i
+        }
+        this.clouds[i].setPosition(x, -view.getVisibleSize().height/2 + Math.random() * (view.getVisibleSize().height))
+    }
+
     setupCoin() {
         let x = Math.max(...this.obstacles.map(o => o.getPosition().x)) + (OBSTACLE_SPACING * 4.5)
         this.coin.setPosition(x, MIN_Y/2 + Math.random() * (MAX_Y/2 - MIN_Y/2))
@@ -261,6 +284,17 @@ export class MainScript extends Component {
                 this.setupObstacle(i, false)
             } else {
                 this.obstacles[i].setPosition(x, y);
+            }
+        }
+        // Update clouds
+        for (let i = 0; i < this.clouds.length; i++) {
+            let x = this.clouds[i].getPosition().x - OBSTACLE_SPEED/2;
+            let y = this.clouds[i].getPosition().y;
+            if (x <= -550) {
+                //get screen width
+                this.setupCloud(i, false)
+            } else {
+                this.clouds[i].setPosition(x, y);
             }
         }
 
@@ -360,26 +394,22 @@ export class MainScript extends Component {
 
     // Callbacks
     onTouchStart(touch: Touch, event: EventTouch) {
+        this.touching = true;
         if (this.gameStatus == GameStatus.Game_Playing) {
             this.planeSpeed = JUMP_SPEED;
-            this.touching = true;
         }
     }
     onMouseDown(event: EventMouse) {
+        this.touching = true;
         if (this.gameStatus == GameStatus.Game_Playing) {
             this.planeSpeed = JUMP_SPEED;
-            this.touching = true;   
         }
     }
     onMouseUp(event: EventMouse) {
-        if (this.gameStatus == GameStatus.Game_Playing) {
-            this.touching = false;
-        }
+        this.touching = false;
     }
     onTouchEnd(touch: Touch, event: EventTouch) {
-        if (this.gameStatus == GameStatus.Game_Playing) {
-            this.touching = false;   
-        }
+        this.touching = false;   
     }
 
     setOverlay(event, type) {
