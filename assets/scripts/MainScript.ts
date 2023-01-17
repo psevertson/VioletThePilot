@@ -44,6 +44,7 @@ const GRAVITY = 0.3;
 const MAX_Y = 120;
 const MIN_Y = -120;
 const FADE_SECONDS = 0.5;
+const SPEED_MULTIPLIER = 1.02;
 
 @ccclass("MainScript")
 export class MainScript extends Component {
@@ -91,6 +92,10 @@ export class MainScript extends Component {
 
     @property({type: AudioClip})
     backgroundMusic: AudioClip = null;
+    @property({type: AudioClip})
+    coinSound: AudioClip = null;
+    @property({type: AudioClip})
+    fallSound: AudioClip = null;
     // sound effect when bird flying
     // @property({type:cc.AudioClip})
     // flySound: cc.AudioClip = null;
@@ -127,6 +132,8 @@ export class MainScript extends Component {
                 let op = this.obstacles[i].getComponent(UIOpacity);
                 tween(op).to(FADE_SECONDS, { opacity: 0 }).start();
             }
+            this.score = 0
+            this.scoreLabel.string = this.score.toString()
             this.scoreLabel.node.active = false;
         } else if (status === GameStatus.Game_Ready) {
             this.coin.setPosition(-view.getVisibleSize().x, 0)
@@ -277,7 +284,7 @@ export class MainScript extends Component {
     update(deltaTime: number) {
         // Update pipes
         for (let i = 0; i < this.obstacles.length; i++) {
-            let x = this.obstacles[i].getPosition().x - OBSTACLE_SPEED;
+            let x = this.obstacles[i].getPosition().x - (OBSTACLE_SPEED * (SPEED_MULTIPLIER ** this.score));
             let y = this.obstacles[i].getPosition().y;
             if (x <= -550) {
                 //get screen width
@@ -288,7 +295,7 @@ export class MainScript extends Component {
         }
         // Update clouds
         for (let i = 0; i < this.clouds.length; i++) {
-            let x = this.clouds[i].getPosition().x - OBSTACLE_SPEED/2;
+            let x = this.clouds[i].getPosition().x - (OBSTACLE_SPEED/2  * (SPEED_MULTIPLIER ** this.score));
             let y = this.clouds[i].getPosition().y;
             if (x <= -550) {
                 //get screen width
@@ -311,7 +318,7 @@ export class MainScript extends Component {
         }
 
         if (this.gameStatus === GameStatus.Game_Playing) {
-            let x = this.coin.getPosition().x - OBSTACLE_SPEED;
+            let x = this.coin.getPosition().x - (OBSTACLE_SPEED * (SPEED_MULTIPLIER ** this.score));
             if (x <= -550) { //get screen width
                 this.setupCoin()
             } else {
@@ -321,7 +328,7 @@ export class MainScript extends Component {
             // Update Clouds
 
             // Update plane
-            this.planeSpeed -= GRAVITY;
+            this.planeSpeed -= GRAVITY  * (SPEED_MULTIPLIER ** this.score);
             if (this.touching && this.planeSpeed < -1) {
                 this.planeSpeed = -1
             }
@@ -377,18 +384,21 @@ export class MainScript extends Component {
         otherCollider: Collider2D,
         contact: IPhysics2DContact | null
     ) {
-        if (selfCollider.tag === 0 || otherCollider.tag === 0) {
-            if (this.gameStatus == GameStatus.Game_Playing) {
-                this.setStatus(null, GameStatus.Game_Over)
+        if (this.gameStatus === GameStatus.Game_Playing) {
+            if (selfCollider.tag === 0 || otherCollider.tag === 0) {
+                if (this.gameStatus == GameStatus.Game_Playing) {
+                    this.fallSound.play();
+                    this.setStatus(null, GameStatus.Game_Over)
+                }
+            } else if (selfCollider.tag === 1 || otherCollider.tag === 1) {
+                this.score++;
+                this.scoreLabel.string = this.score.toString();
+            } else if (selfCollider.tag === 2 || otherCollider.tag === 2) {
+                this.score += 3;
+                this.scoreLabel.string = this.score.toString();
+                this.setupCoin();
+                this.coinSound.play();
             }
-        } else if (selfCollider.tag === 1 || otherCollider.tag === 1) {
-            this.score++;
-            this.scoreLabel.string = this.score.toString();
-        } else if (selfCollider.tag === 2 || otherCollider.tag === 2) {
-            this.score += 3;
-            this.scoreLabel.string = this.score.toString();
-            this.setupCoin();
-            //coin sound
         }
     }
 
@@ -415,6 +425,8 @@ export class MainScript extends Component {
     setOverlay(event, type) {
         if (type === "credits") {
             this.node.getChildByName("OverlayLayer").active = true
+            this.node.getChildByName("OverlayLayer").getChildByName("CreditOverlay").active = true
+            this.node.getChildByName("OverlayLayer").getChildByName("InstructionsOverlay").active = false
             this.btnStart.interactable = false;
             this.btnStart.enabled = false;
             this.btnInstructions.interactable = false;
@@ -422,7 +434,15 @@ export class MainScript extends Component {
             this.btnCredits.interactable = false;
             this.btnCredits.enabled = false;
         } else if (type === "instructions") {
-
+            this.node.getChildByName("OverlayLayer").active = true
+            this.node.getChildByName("OverlayLayer").getChildByName("CreditOverlay").active = false
+            this.node.getChildByName("OverlayLayer").getChildByName("InstructionsOverlay").active = true
+            this.btnStart.interactable = false;
+            this.btnStart.enabled = false;
+            this.btnInstructions.interactable = false;
+            this.btnInstructions.enabled = false;
+            this.btnCredits.interactable = false;
+            this.btnCredits.enabled = false;
         } else {
             this.node.getChildByName("OverlayLayer").active = false
             this.btnStart.interactable = true;
