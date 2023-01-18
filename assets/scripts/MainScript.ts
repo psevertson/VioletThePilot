@@ -44,7 +44,7 @@ const GRAVITY = 0.3;
 const MAX_Y = 120;
 const MIN_Y = -120;
 const FADE_SECONDS = 0.5;
-const SPEED_MULTIPLIER = 1.02;
+const SPEED_MULTIPLIER = 1.01;
 
 @ccclass("MainScript")
 export class MainScript extends Component {
@@ -93,7 +93,7 @@ export class MainScript extends Component {
     @property({type: AudioClip})
     backgroundMusic: AudioClip = null;
     @property({type: AudioClip})
-    coinSound: AudioClip = null;
+    pointSound: AudioClip = null;
     @property({type: AudioClip})
     fallSound: AudioClip = null;
     // sound effect when bird flying
@@ -397,7 +397,7 @@ export class MainScript extends Component {
                 this.score += 3;
                 this.scoreLabel.string = this.score.toString();
                 this.setupCoin();
-                this.coinSound.play();
+                this.pointSound.play();
             }
         }
     }
