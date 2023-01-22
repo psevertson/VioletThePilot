@@ -36,8 +36,8 @@ export enum GameStatus {
     Game_Loading,
 }
 
-const FIRST_OBSTACLE_DISTANCE = 400;
-const OBSTACLE_SPACING = 500;
+const FIRST_OBSTACLE_DISTANCE = 500;
+const OBSTACLE_SPACING = 600;
 const OBSTACLE_SPEED = 3.0;
 const JUMP_SPEED = 7;
 const GRAVITY = 0.3;
@@ -49,6 +49,8 @@ const SPEED_MULTIPLIER = 1.01;
 @ccclass("MainScript")
 export class MainScript extends Component {
 
+    @property(Node)
+    backgroundLayer: Node = null;
     @property(Node)
     background: Node = null;
     clouds: Node[] = [];
@@ -89,6 +91,12 @@ export class MainScript extends Component {
     @property(Label)
     scoreLabel: Label = null;
     score: number = 0;
+    @property(Label)
+    gameOverScoreLabel: Label = null;
+    @property(Label)
+    gameOverHighScoreLabel: Label = null;
+    @property(Label)
+    playHighScoreLabel: Label = null;
 
     @property({type: AudioClip})
     backgroundMusic: AudioClip = null;
@@ -155,6 +163,7 @@ export class MainScript extends Component {
                 op.opacity = 0;
             }
             this.scoreLabel.node.active = false;
+            this.playHighScoreLabel.string = "High Score: " + this.getHighscore()
         } else if (status === GameStatus.Game_Playing) {
             this.plane.setPosition(-view.getVisibleSize().width / 2 + (this.plane.getComponent(UITransform).contentSize.width * this.plane.scale.x /2), 0);
             this.plane.setRotationFromEuler(new Vec3(0, 0, 0));
@@ -202,6 +211,8 @@ export class MainScript extends Component {
             }
             this.scoreLabel.node.active = false;
             this.planeSpeed = 0
+            this.gameOverScoreLabel.string = "Score: " + this.score.toString()
+            this.gameOverHighScoreLabel.string = "High Score: " + this.getHighscore()
         }
     }
 
@@ -226,11 +237,14 @@ export class MainScript extends Component {
         // this.btnCredits.node.on(Node.EventType.TOUCH_END, this.creditBtn, this)
         // Set layout
 
-        this.background.getComponent(UITransform).setContentSize(view.getViewportRect())
-        this.shade.getComponent(UITransform).setContentSize(view.getViewportRect())
+        this.background.setScale(1, view.getViewportRect().height / view.getViewportRect().width)
+        this.shade.setScale(1, view.getViewportRect().height / view.getViewportRect().width)
+        // this.backgroundLayer.getComponent(UITransform).setContentSize(view.getViewportRect())
+        // console.log(view.getViewportRect())
+        // this.shade.getComponent(UITransform).setContentSize(view.getViewportRect())
         // this.logoNode.setPosition(0, view.getVisibleSize().y/2 - (this.logoNode.getComponent(UITransform).contentSize.height * this.logoNode.scale.y/2) - 10)
         // this.gameOverNode.setPosition(0, view.getVisibleSize().y/2 - (this.gameOverNode.getComponent(UITransform).contentSize.height * this.gameOverNode.scale.y/2) - 10)
-        this.scoreLabel.node.setPosition(-view.getVisibleSize().x/2 + 20, view.getVisibleSize().y/2 - 20)
+        // this.scoreLabel.node.setPosition(0, view.getVisibleSize().y/2 - 20)
         // this.btnStart.node.setPosition(0, 0)
         // this.btnInstructions.node.setPosition(0, -75)
         // this.btnCredits.node.setPosition(0, -140)
@@ -378,6 +392,16 @@ export class MainScript extends Component {
         
     }
 
+    getHighscore() {
+        return JSON.parse(localStorage.getItem("highscore") || "0")
+    }
+
+    submitHighscore(score) {
+        if (score > this.getHighscore()) {
+            localStorage.setItem("highscore", this.score.toString())
+        }
+    }
+
     // Contact - Gameover or Score
     onBeginContact(
         selfCollider: Collider2D,
@@ -387,6 +411,7 @@ export class MainScript extends Component {
         if (this.gameStatus === GameStatus.Game_Playing) {
             if (selfCollider.tag === 0 || otherCollider.tag === 0) {
                 if (this.gameStatus == GameStatus.Game_Playing) {
+                    this.submitHighscore(this.score)
                     this.fallSound.play();
                     this.setStatus(null, GameStatus.Game_Over)
                 }
