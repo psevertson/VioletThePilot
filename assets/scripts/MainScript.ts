@@ -431,13 +431,13 @@ export class MainScript extends Component {
     onTouchStart(touch: Touch, event: EventTouch) {
         this.touching = true;
         if (this.gameStatus == GameStatus.Game_Playing) {
-            this.planeSpeed = JUMP_SPEED;
+            this.planeSpeed = JUMP_SPEED * (SPEED_MULTIPLIER ** (this.score/2));
         }
     }
     onMouseDown(event: EventMouse) {
         this.touching = true;
         if (this.gameStatus == GameStatus.Game_Playing) {
-            this.planeSpeed = JUMP_SPEED;
+            this.planeSpeed = JUMP_SPEED * (SPEED_MULTIPLIER ** (this.score/2));
         }
     }
     onMouseUp(event: EventMouse) {
