@@ -7,7 +7,7 @@ temp/
 local/
 build/
 profiles/
-native
+.DS_Store
 #//////////////////////////
 # NPM
 #//////////////////////////
