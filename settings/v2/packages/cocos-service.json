@@ -1,13 +1,17 @@
 {
   "game": {
-    "name": "UNKNOW GAME",
-    "app_id": "UNKNOW",
+    "app_id": "644248546",
+    "name": "VioletThePilot",
     "c_id": "0"
   },
   "appConfigMaps": [
     {
       "app_id": "UNKNOW",
       "config_id": "23cb05"
+    },
+    {
+      "app_id": "644248546",
+      "config_id": "aa753a"
     }
   ],
   "configs": [
@@ -17,6 +21,22 @@
       "config_name": "Default",
       "config_remarks": "",
       "services": []
+    },
+    {
+      "app_id": "644248546",
+      "config_id": "aa753a",
+      "config_name": "Default",
+      "config_remarks": "",
+      "services": [
+        {
+          "service_id": "235",
+          "enable": true,
+          "param": {
+            "app_id": "644248546",
+            "store_id": "Android"
+          }
+        }
+      ]
     }
   ]
 }

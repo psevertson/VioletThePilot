@@ -1,0 +1,6 @@
+framework module CocosAnalytics {
+  umbrella header "CocosAnalytics.h"
+
+  export *
+  module * { export * }
+}
