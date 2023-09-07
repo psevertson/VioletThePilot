@@ -41,6 +41,7 @@
 #pragma mark Application lifecycle
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    [[UIApplication sharedApplication] setIdleTimerDisabled:YES];
     [[SDKWrapper shared] application:application didFinishLaunchingWithOptions:launchOptions];
     appDelegateBridge = [[AppDelegateBridge alloc] init];
     

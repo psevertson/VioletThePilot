@@ -36,6 +36,7 @@ public class AppActivity extends CocosActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         // DO OTHER INITIALIZATION BELOW
         SDKWrapper.shared().init(this);
 
